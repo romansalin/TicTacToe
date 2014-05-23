@@ -54,6 +54,11 @@ var TicTacToe = (function () {
         }
 
         move(cell, TURNS.player);
+
+        if (checkGameEnd()) {
+            return;
+        }
+
         resolveRobotMove();
     };
 
@@ -70,18 +75,35 @@ var TicTacToe = (function () {
     };
 
     var resolveRobotMove = function () {
-        var winner = checkGameEnd();
-        if (winner) {
-            return;
+        //TODO
+//        for (var i = 0; i < gameState.length; i++) {
+//            if ()
+//        }
+//        checkWinChance();
+
+
+        var cellCenter = 4;
+        var cellCorner = [0, 2, 6, 8].filter(function (cell) {
+            return gameState[cell] === null;
+        }).randomElement();
+        var cellOther = [1, 3, 5, 7].filter(function (cell) {
+            return gameState[cell] === null;
+        }).randomElement();
+
+        console.log(cellCorner);
+        console.log(cellOther);
+
+        if (gameState[cellCenter] === null) {
+            move(cellCenter, TURNS.robot);
+        } else if (gameState[cellCorner] === null) {
+            move(cellCorner, TURNS.robot);
+        } else {
+            move(cellOther, TURNS.robot);
         }
 
-        //TODO
-
-
-
-        var cell = 8;
-
-        move(cell, TURNS.robot);
+        if (checkGameEnd()) {
+            return;
+        }
     };
 
     var checkGameEnd = function () {
@@ -142,7 +164,7 @@ var TicTacToe = (function () {
         if (typeof cellClass !== 'undefined') {
             for (var i = 0; i < cells.length; i++) {
                 var gameCell = settings.gameTable.find('tr:eq(' + Math.floor(cells[i] / SIZE) + ') td:eq(' + cells[i] % SIZE + ')');
-                $(gameCell).find('span').addClass('win');
+                $(gameCell).find('span').addClass(cellClass);
             }
         }
 
@@ -160,6 +182,9 @@ var TicTacToe = (function () {
 
 })();
 
+Array.prototype.randomElement = function () {
+    return this[Math.floor(Math.random() * this.length)];
+};
 
 $(function () {
     TicTacToe.init();
