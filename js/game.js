@@ -141,7 +141,7 @@ var TicTacToe = (function () {
 
     var checkWinLoseChance = function () {
         for (var i = 0; i < WINNING_COMBINATIONS.length; i++) {
-            var match = {win: 0, lose: 0};
+            var match = {win: 0, lose: 0, emptyCell: null};
 
             for (var j = 0; j < WINNING_COMBINATIONS[i].length; j++) {
                 if (gameState[WINNING_COMBINATIONS[i][j]] === TURNS.player) {
@@ -151,29 +151,19 @@ var TicTacToe = (function () {
                 if (gameState[WINNING_COMBINATIONS[i][j]] === TURNS.robot) {
                     match.lose++;
                 }
+
+                if (gameState[WINNING_COMBINATIONS[i][j]] === null) {
+                    match.emptyCell = j;
+                }
             }
 
-            if (match['lose'] === SIZE - 1) {
-                var cellLose = $.grep(WINNING_COMBINATIONS[i], function (cell) {
-                    return gameState[cell] === null;
-                })[0];
-
-                if (cellLose == null) {
-                    continue;
-                }
-                move(cellLose, TURNS.robot);
+            if (match.lose === SIZE - 1 && match.emptyCell != null) {
+                move(WINNING_COMBINATIONS[i][match.emptyCell], TURNS.robot);
                 return true;
             }
 
-            if (match['win'] === SIZE - 1) {
-                var cellWin = $.grep(WINNING_COMBINATIONS[i], function (cell) {
-                    return gameState[cell] === null;
-                })[0];
-
-                if (cellWin == null) {
-                    continue;
-                }
-                move(cellWin, TURNS.robot);
+            if (match.win === SIZE - 1 && match.emptyCell != null) {
+                move(WINNING_COMBINATIONS[i][match.emptyCell], TURNS.robot);
                 return true;
             }
         }
