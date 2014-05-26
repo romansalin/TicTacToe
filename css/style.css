@@ -27,3 +27,8 @@ table#board td .win {
 table#board td .lose {
     color: red;
 }
+#result {
+    font-size: 30px;
+    margin: 20px 0;
+    text-align: center;
+}

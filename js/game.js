@@ -1,8 +1,14 @@
 var TicTacToe = (function () {
 
+    var SIZE = 3;
+
     var TURNS = {player: 'x', robot: 'o'};
 
-    var SIZE = 3;
+    var RESULTS = {
+        'lose': {code: 'lose', message: 'Вы проиграли!'},
+        'win': {code: 'win', message: 'Вы выиграли!'},
+        'draw': {code: 'draw', message: 'Ничья!'}
+    };
 
     var WINNING_COMBINATIONS = [
         [0, 1, 2],
@@ -28,6 +34,7 @@ var TicTacToe = (function () {
         settings.startButton = $('#start');
         settings.gameTable = $('#board');
         settings.gameCell = settings.gameTable.find('td');
+        settings.result = $('#result');
     };
 
     var bindEvents = function () {
@@ -35,12 +42,18 @@ var TicTacToe = (function () {
         settings.gameCell.on('click', userMove);
     };
 
+    var getCellByNumber = function (cell) {
+        return settings.gameTable.find('tr:eq(' + Math.floor(cell / SIZE) + ') td:eq(' + cell % SIZE + ')');
+    };
+
     var startNewGame = function () {
         for (var i = 0; i < SIZE * SIZE; i++) {
             gameState[i] = null;
         }
 
-        settings.gameCell.find('span').remove();
+        settings.gameCell.empty();
+        settings.result.empty();
+        settings.gameCell.on('click', userMove);
     };
 
     var userMove = function () {
@@ -53,60 +66,27 @@ var TicTacToe = (function () {
             startNewGame();
         }
 
-        move(cell, TURNS.player);
+        if (gameState[cell] === null) {
+            move(cell, TURNS.player);
 
-        if (checkGameEnd()) {
-            return;
+            if (!isGameEnded()) {
+                resolveNextMove();
+                isGameEnded();
+            }
         }
 
-        resolveRobotMove();
+        return false;
     };
 
     var move = function (cell, turn) {
+        gameState[cell] = turn;
+        console.log(gameState);
 
-        if (gameState[cell] === null) {
-            gameState[cell] = turn;
-
-            console.log(gameState);
-
-            var gameCell = settings.gameTable.find('tr:eq(' + Math.floor(cell / SIZE) + ') td:eq(' + cell % SIZE + ')');
-            $(gameCell).html('<span>' + turn + '</span>');
-        }
+        var gameCell = getCellByNumber(cell);
+        $(gameCell).html('<span>' + turn + '</span>');
     };
 
-    var resolveRobotMove = function () {
-        //TODO
-//        for (var i = 0; i < gameState.length; i++) {
-//            if ()
-//        }
-//        checkWinChance();
-
-
-        var cellCenter = 4;
-        var cellCorner = [0, 2, 6, 8].filter(function (cell) {
-            return gameState[cell] === null;
-        }).randomElement();
-        var cellOther = [1, 3, 5, 7].filter(function (cell) {
-            return gameState[cell] === null;
-        }).randomElement();
-
-        console.log(cellCorner);
-        console.log(cellOther);
-
-        if (gameState[cellCenter] === null) {
-            move(cellCenter, TURNS.robot);
-        } else if (gameState[cellCorner] === null) {
-            move(cellCorner, TURNS.robot);
-        } else {
-            move(cellOther, TURNS.robot);
-        }
-
-        if (checkGameEnd()) {
-            return;
-        }
-    };
-
-    var checkGameEnd = function () {
+    var isGameEnded = function () {
         for (var i = 0; i < WINNING_COMBINATIONS.length; i++) {
             var match = {win: 0, lose: 0};
 
@@ -121,59 +101,98 @@ var TicTacToe = (function () {
             }
 
             if (match['win'] === SIZE) {
-                showResult(1, WINNING_COMBINATIONS[i]);
-
+                showResult(RESULTS.win, WINNING_COMBINATIONS[i]);
                 return true;
             }
 
             if (match['lose'] === SIZE) {
-                showResult(-1, WINNING_COMBINATIONS[i]);
-
+                showResult(RESULTS.lose, WINNING_COMBINATIONS[i]);
                 return true;
             }
         }
 
         for (var i = 0; i < SIZE * SIZE; i++) {
             if (gameState[i] === null) {
-
                 return false;
             }
         }
 
-        return 0;
+        showResult(RESULTS.draw, null);
+        return true;
     };
 
-    var showResult = function (result, cells) {
-        var message;
-        var cellClass;
+    var resolveNextMove = function () {
+        if (!checkWinLoseChance()) {
+            var cellCenter = 4;
+            var cellCorner = [0, 2, 6, 8].filter(function (cell) {
+                return gameState[cell] === null;
+            }).randomElement();
+            var cellOther = [1, 3, 5, 7].filter(function (cell) {
+                return gameState[cell] === null;
+            }).randomElement();
 
-        switch (result) {
-            case -1:
-                cellClass = 'lose';
-                message = 'Вы проиграли!';
-                break;
-            case 0:
-                message = 'Ничья!';
-                break;
-            case 1:
-                cellClass = 'win';
-                message = 'Вы выиграли!';
-                break;
+            if (gameState[cellCenter] === null) {
+                move(cellCenter, TURNS.robot);
+            } else if (gameState[cellCorner] === null) {
+                move(cellCorner, TURNS.robot);
+            } else {
+                move(cellOther, TURNS.robot);
+            }
         }
+    };
 
-        if (typeof cellClass !== 'undefined') {
-            for (var i = 0; i < cells.length; i++) {
-                var gameCell = settings.gameTable.find('tr:eq(' + Math.floor(cells[i] / SIZE) + ') td:eq(' + cells[i] % SIZE + ')');
-                $(gameCell).find('span').addClass(cellClass);
+    var checkWinLoseChance = function () {
+        for (var i = 0; i < WINNING_COMBINATIONS.length; i++) {
+            var match = {win: 0, lose: 0};
+
+            for (var j = 0; j < WINNING_COMBINATIONS[i].length; j++) {
+                if (gameState[WINNING_COMBINATIONS[i][j]] === TURNS.player) {
+                    match.win++;
+                }
+
+                if (gameState[WINNING_COMBINATIONS[i][j]] === TURNS.robot) {
+                    match.lose++;
+                }
+            }
+
+            if (match['lose'] === SIZE - 1) {
+                var cellLose = WINNING_COMBINATIONS[i].filter(function (cell) {
+                    return gameState[cell] === null;
+                });
+
+                if (gameState[cellLose] === null) {
+                    move(cellLose, TURNS.robot);
+                    return true;
+                }
+            }
+
+            if (match['win'] === SIZE - 1) {
+                var cellWin = WINNING_COMBINATIONS[i].filter(function (cell) {
+                    return gameState[cell] === null;
+                });
+
+                if (gameState[cellWin] === null) {
+                    move(cellWin, TURNS.robot);
+                    return true;
+                }
             }
         }
 
-        message += ' Хотите сыграть еще?';
+        return false;
+    };
 
-        var y = confirm(message);
-        if (y == true) {
-            location.reload(true);
+    var showResult = function (result, winningCombination) {
+
+        settings.gameCell.off('click');
+
+        if (winningCombination !== null && (result.code == 'win' || result.code == 'lose')) {
+            for (var i = 0; i < winningCombination.length; i++) {
+                var gameCell = getCellByNumber(winningCombination[i]);
+                $(gameCell).find('span').addClass(result.code);
+            }
         }
+
+        settings.result.append(result.message);
     };
 
     return {
