@@ -74,8 +74,6 @@ var TicTacToe = (function () {
                 isGameEnded();
             }
         }
-
-        return false;
     };
 
     var move = function (cell, turn) {
@@ -124,16 +122,16 @@ var TicTacToe = (function () {
     var resolveNextMove = function () {
         if (!checkWinLoseChance()) {
             var cellCenter = 4;
-            var cellCorner = [0, 2, 6, 8].filter(function (cell) {
+            var cellCorner = $.grep([0, 2, 6, 8], function (cell) {
                 return gameState[cell] === null;
             }).randomElement();
-            var cellOther = [1, 3, 5, 7].filter(function (cell) {
+            var cellOther = $.grep([1, 3, 5, 7], function (cell) {
                 return gameState[cell] === null;
             }).randomElement();
 
             if (gameState[cellCenter] === null) {
                 move(cellCenter, TURNS.robot);
-            } else if (gameState[cellCorner] === null) {
+            } else if (cellCorner != null) {
                 move(cellCorner, TURNS.robot);
             } else {
                 move(cellOther, TURNS.robot);
@@ -156,25 +154,27 @@ var TicTacToe = (function () {
             }
 
             if (match['lose'] === SIZE - 1) {
-                var cellLose = WINNING_COMBINATIONS[i].filter(function (cell) {
+                var cellLose = $.grep(WINNING_COMBINATIONS[i], function (cell) {
                     return gameState[cell] === null;
-                });
+                })[0];
 
-                if (gameState[cellLose] === null) {
-                    move(cellLose, TURNS.robot);
-                    return true;
+                if (cellLose == null) {
+                    continue;
                 }
+                move(cellLose, TURNS.robot);
+                return true;
             }
 
             if (match['win'] === SIZE - 1) {
-                var cellWin = WINNING_COMBINATIONS[i].filter(function (cell) {
+                var cellWin = $.grep(WINNING_COMBINATIONS[i], function (cell) {
                     return gameState[cell] === null;
-                });
+                })[0];
 
-                if (gameState[cellWin] === null) {
-                    move(cellWin, TURNS.robot);
-                    return true;
+                if (cellWin == null) {
+                    continue;
                 }
+                move(cellWin, TURNS.robot);
+                return true;
             }
         }
 
