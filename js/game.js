@@ -140,6 +140,11 @@ var TicTacToe = (function () {
     };
 
     var checkWinLoseChance = function () {
+        // Where can I make a move to win?
+        var loseCells = [];
+        // Where can my opponent makes a move to win?
+        var winCells = [];
+        
         for (var i = 0; i < WINNING_COMBINATIONS.length; i++) {
             var match = {win: 0, lose: 0, emptyCell: null};
 
@@ -158,16 +163,23 @@ var TicTacToe = (function () {
             }
 
             if (match.lose === SIZE - 1 && match.emptyCell != null) {
-                move(WINNING_COMBINATIONS[i][match.emptyCell], TURNS.robot);
-                return true;
+                loseCells.push(WINNING_COMBINATIONS[i][match.emptyCell]);
             }
 
             if (match.win === SIZE - 1 && match.emptyCell != null) {
-                move(WINNING_COMBINATIONS[i][match.emptyCell], TURNS.robot);
-                return true;
+                winCells.push(WINNING_COMBINATIONS[i][match.emptyCell]);
             }
         }
 
+        var winCell = winCells.randomElement();
+        if (loseCells[0] != null) {
+            move(loseCells[0], TURNS.robot);
+            return true;
+        } else if (winCell != null) {
+            move(winCell, TURNS.robot);
+            return true;
+        }
+        
         return false;
     };
 
